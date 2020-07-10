@@ -1,0 +1,66 @@
+---
+title: "Using Nighttime Satellite Imagery"
+output: html_notebook
+---
+
+```{r}
+library(rgee)
+ee_Initialize()
+```
+
+```{r}
+collection <- ee$ImageCollection("LANDSAT/LC08/C01/T1")
+```
+
+```{r}
+point <- ee$Geometry$Point(-122.262, 37.8719)
+start <- ee$Date("2014-06-01")
+finish <- ee$Date("2014-10-01")
+```
+
+
+```{r}
+filteredCollection <- ee$ImageCollection("LANDSAT/LC08/C01/T1")$
+  filterBounds(point)$
+  filterDate(start, finish)$
+  sort("CLOUD_COVER", TRUE)
+```
+
+```{r}
+first <- filteredCollection$first()
+```
+
+Define visualisation parameters in an object
+```{r}
+vizParams <- list(
+  bands = c("B5", "B4", "B3"),
+  min = 5000,
+  max = 15000,
+  gamma = 1.3
+)
+```
+
+Create interactive map
+```{r}
+Map$addLayer(first, vizParams, "Landsat 8 image")
+```
+
+Load a feature collection
+```{r}
+featureCollection <- ee$FeatureCollection("TIGER/2016/States")
+```
+
+Filter the collection
+```{r}
+filteredFC <- featureCollection$filter(ee$Filter$eq("NAME", "California"))
+```
+
+Display the collection
+```{r}
+Map$addLayer(
+  eeObject = filteredFC,
+  visParams = list(palette = "red"),
+  name = "California"
+)
+```
+
